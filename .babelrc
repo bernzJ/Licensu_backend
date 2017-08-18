@@ -1,0 +1,24 @@
+{
+    "sourceMaps": "inline",
+    "presets": [
+        [
+            "env",
+            {
+                "targets": {
+                    "node": "current"
+                }
+            }
+        ]
+    ],
+    "plugins": [
+        [
+            "transform-es2015-classes",
+            {
+                "loose": false
+            }
+        ],
+        [
+            "transform-es2015-modules-commonjs"
+        ]
+    ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "sslserver",
+  "version": "1.0.0",
+  "main": "app.js",
+  "dependencies": {
+    "babel-polyfill": "^6.23.0",
+    "mysql": "^2.13.0",
+    "nodemon": "^1.11.0",
+    "promise-mysql": "^3.0.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-es2015-classes": "^6.24.1",
+    "babel-preset-env": "^1.6.0"
+  },
+  "scripts": {
+    "debug": "npm run serve",
+    "start": "npm run serve",
+    "build": "babel src --out-dir dist",
+    "serve": "npm run build && node --debug=5858 dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "benz",
+  "license": "ISC",
+  "description": "mutual ssl auth with c#",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bernzJ/Licensu_backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bernzJ/Licensu_backend/issues"
+  },
+  "homepage": "https://github.com/bernzJ/Licensu_backend#readme"
+}
