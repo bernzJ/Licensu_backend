@@ -1,5 +1,6 @@
 import * as helpers from './index';
 import fs from 'fs';
+import path from 'path';
 
 let ServerHelper = {
     updateToken(newTokenObject) {
@@ -79,14 +80,24 @@ let ServerHelper = {
         return outData;
     },
     serveHasRemoteData(programID) {
+        let remoteVariables = {};
         return new Promise((resolve, reject) => {
-            fs.readFile('programs/' + programID, (err, data) => {
-                if (err) {
-                    reject(err);
-                    return;
-                };
-                let buff = new Buffer(data).toString('base64');
-                resolve(buff);
+            let promises = [];
+            fs.readdir('programs/' + programID + '/', (err, files) => {
+                if (err) { reject(err); return; }
+                files.forEach(file => {
+                    promises.push(new Promise((resolve, reject) => {
+                        console.log(file);
+                        fs.readFile('programs/' + programID + '/' + file, (errFile, data) => {
+                            if (errFile) { reject(errFile); return; }
+                            remoteVariables[path.parse(file).name] = new Buffer(data).toString('base64');
+                            resolve();
+                        });
+                    }));
+                });
+                Promise.all(promises).then(() => {
+                    return resolve(remoteVariables);
+                });
             });
         });
     },
@@ -104,6 +115,9 @@ let ServerHelper = {
         }
         return outData;
     },
+    readFiles(files) {
+
+    },
     log(message) {
         console.log(message);
         fs.appendFile('server.log', message + '\n');
@@ -114,7 +128,7 @@ let ServerHelper = {
             data: (typeof data === 'undefined') ? '' : data,
         };
         return new Promise((resolve, reject) => {
-            socket.write(JSON.stringify(packet), () => { resolve(retbool) });
+            socket.write(JSON.stringify(packet) + '\n', () => { resolve(retbool) });
         });
     }
 }

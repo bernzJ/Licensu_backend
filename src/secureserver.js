@@ -47,7 +47,7 @@ export default class SecureServer {
     onError(error) {
         // Logging this can be omited.
         helpers.ServerHelper.log(error);
-        if(this.socket)
+        if (this.socket)
             this.socket.destroy();
         if (this.socket.remoteAddress == null || this.token.data.IPS[0] == null) return;
         let remote = ip.toLong(this.socket.remoteAddress).toString();
@@ -147,12 +147,12 @@ export default class SecureServer {
             //let md5 = dataJSON.value.MD5.split(':')[0];
             helpers.ServerHelper.log('GOT FOLLOWING MD5: ' + dataJSON.value.MD5);
             //TODO : change that to !==
-            if (dataJSON.value.MD5 === this.token.row.md5) {
-                this.token.data.banned = 'true:Invalid MD5 checksum. Integrity of the assembly.';
+            if (dataJSON.value.MD5 !== this.token.row.md5) {
+                this.token.data.banned = { 'Invalid MD5 checksum. Integrity of the assembly.': true };
                 return helpers.ServerHelper.sendPacket(this.socket, 'F2', '', false);
             }
             this.token.data.MD5 = dataJSON.value.MD5;
-            
+
             // HWID match check
 
             //new Buffer(this.token.data.IPBAN, 'base64').toString('ascii')
@@ -193,7 +193,6 @@ export default class SecureServer {
             return (AskRequest == null) ? connection.query('SELECT * FROM programs').then((rows) => {
                 // This is not the final implementation of a 'plugin' system
                 return helpers.ServerHelper.serveHasRemoteData(this.token.data.acces).then((Buffer) => {
-                    console.log('FILE EXIST ! SHOULD BE SENDING IT');
                     return helpers.ServerHelper.sendPacket(this.socket, 'DEA', Buffer, true);
                 }).catch((error) => {
                     // unused
@@ -229,7 +228,7 @@ export default class SecureServer {
 
     // Todo put these in function to remove redundancy.
     onClose() {
-        if(this.socket)
+        if (this.socket)
             this.socket.destroy();
         if (this.socket.remoteAddress == null || this.token.data.IPS[0] == null) return;
         let remote = ip.toLong(this.socket.remoteAddress).toString();
