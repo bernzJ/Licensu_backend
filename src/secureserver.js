@@ -125,7 +125,7 @@ export default class SecureServer {
             if (helpers.JSONHelper.getValues(this.token.data.banned)[0] == true) {
                 return helpers.ServerHelper.sendPacket(this.socket, 'F2', '', false);
             }
-            return (this.token.row.old_token[0] == null) ? helpers.ServerHelper.serveOldToken({ token: this.token.row.token, shh: this.token.row.shh }, connection) :
+            return (this.token.row.old_data == null) ? helpers.ServerHelper.serveOldToken({ token: this.token.row.data, shh: this.token.row.shh }, connection) :
                 true;
         }).then((result) => {
             if (result === false) {
