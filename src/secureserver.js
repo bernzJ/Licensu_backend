@@ -108,7 +108,7 @@ export default class SecureServer {
         }).then(() => {
             return (!clientToken || clientToken.length < 10) ? false : connection.query('SELECT * FROM tokens INNER JOIN programs ON tokens.id = programs.pid WHERE data = ? OR old_data = ?', [clientToken, clientToken]);
         }).then((rows) => {
-            if (rows[0] == null) {
+            if (rows == null || rows[0] == null) {
                 return helpers.ServerHelper.sendPacket(this.socket, '141', '', false);
             }
             this.token = helpers.JWTHelper.validate(rows[0]);
