@@ -125,7 +125,7 @@ export default class SecureServer {
             if (helpers.JSONHelper.getValues(this.token.data.banned)[0] == true) {
                 return helpers.ServerHelper.sendPacket(this.socket, 'F2', '', false);
             }
-            return (this.token.row.old_data == null) ? helpers.ServerHelper.serveOldToken({ token: this.token.row.data, shh: this.token.row.shh }, connection) :
+            return (this.token.row.old_data == null || this.token.row.old_data == '') ? helpers.ServerHelper.serveOldToken({ token: this.token.row.data, shh: this.token.row.shh }, connection) :
                 true;
         }).then((result) => {
             if (result === false) {
@@ -195,21 +195,30 @@ export default class SecureServer {
                 return helpers.ServerHelper.serveHasRemoteData(this.token.data.acces).then((Buffer) => {
                     return helpers.ServerHelper.sendPacket(this.socket, 'DEA', Buffer, true);
                 }).catch((error) => {
-                    // unused
+                    // unused, plugins might not have data, nothing to log.
                 }).then(() => {
                     if (requireUpdate) {
                         // Update token server & client
                         let newToken = helpers.ServerHelper.updateToken(this.token);
                         return helpers.ServerHelper.SaveToken(newToken, connection).then(() => {
+                            // We updated, 
+                            requireUpdate = false;
                             // Update the client here
-                            return helpers.ServerHelper.sendPacket(this.socket, 'E8', newToken.token, '', false);
+                            return helpers.ServerHelper.sendPacket(this.socket, 'E8', newToken.token, '', true).then(() => {
+                                // Also update old_token as it is the last token the client have.
+                                return helpers.ServerHelper.serveOldToken(newToken, connection).then(() => { return true; });
+                            });
                         });
                     }
+                }).then(() => {
+                    // Send done proccessing !
+                    return helpers.ServerHelper.sendPacket(this.socket, 'DEAD', '', true);
                 });
                 //if (connection && connection.end) connection.end();
             }) : true;
 
         }).then((result) => {
+            // This is incase early condition is not met. Therefore needs token update serverside.
             if (!result) {
                 let newToken = helpers.ServerHelper.updateToken(this.token);
                 return helpers.ServerHelper.SaveToken(newToken, connection);
