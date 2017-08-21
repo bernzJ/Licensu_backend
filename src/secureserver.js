@@ -106,7 +106,7 @@ export default class SecureServer {
             connection = conn;
             return connection.changeUser({ database: 'licensu' });
         }).then(() => {
-            return connection.query('SELECT * FROM tokens INNER JOIN programs ON tokens.id = programs.pid WHERE data = ? OR old_data = ?', [clientToken, clientToken]);
+            return (!clientToken || clientToken.length < 10) ? false : connection.query('SELECT * FROM tokens INNER JOIN programs ON tokens.id = programs.pid WHERE data = ? OR old_data = ?', [clientToken, clientToken]);
         }).then((rows) => {
             if (rows[0] == null) {
                 return helpers.ServerHelper.sendPacket(this.socket, '141', '', false);
