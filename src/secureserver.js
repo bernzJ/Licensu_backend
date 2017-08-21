@@ -210,9 +210,13 @@ export default class SecureServer {
             }) : true;
 
         }).then((result) => {
+            if (!result) {
+                let newToken = helpers.ServerHelper.updateToken(this.token);
+                return helpers.ServerHelper.SaveToken(newToken, connection);
+            }
+        }).then(() => {
             if (connection && connection.end) connection.end(); if (this.socket) this.socket.destroy();
             this.isbusy = false;
-
         }).catch((error) => {
             this.isbusy = false;
             if (this.socket) {
