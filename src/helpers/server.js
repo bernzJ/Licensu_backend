@@ -80,6 +80,10 @@ let ServerHelper = {
         return outData;
     },
     serveHasRemoteData(programID) {
+        let plugin = {
+            misc: {},
+            data: ''
+        };
         let remoteVariables = {};
         return new Promise((resolve, reject) => {
             let promises = [];
@@ -87,10 +91,14 @@ let ServerHelper = {
                 if (err) { reject(err); return; }
                 files.forEach(file => {
                     promises.push(new Promise((resolve, reject) => {
-                        console.log(file);
                         fs.readFile('programs/' + programID + '/' + file, (errFile, data) => {
                             if (errFile) { reject(errFile); return; }
-                            remoteVariables[path.parse(file).name] = new Buffer(data).toString('base64');
+                            if (remoteVariables[path.parse(file).name] == null) remoteVariables[path.parse(file).name] = {};
+                            if (path.extname(file) == '.json') {
+                                remoteVariables[path.parse(file).name]['misc'] = JSON.stringify(JSON.parse(data));
+                            } else {
+                                remoteVariables[path.parse(file).name]['data'] = new Buffer(data).toString('base64');
+                            }
                             resolve();
                         });
                     }));

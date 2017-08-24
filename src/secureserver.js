@@ -3,6 +3,7 @@ import config from './db_config'
 import mysql from 'promise-mysql';
 import * as helpers from './helpers/index';
 import ip from 'ip';
+import escape from 'html-escape';
 
 // Our main class object
 export default class SecureServer {
@@ -98,7 +99,6 @@ export default class SecureServer {
         }
 
         let clientToken = dataJSON.key;
-        let AskRequest = null;//(dataJSON.value.PID != null && dataJSON.value.PID.length > 4) ? dataJSON.value.PID : null;
         let connection;
         this.isbusy = true;
 
@@ -145,13 +145,14 @@ export default class SecureServer {
 
             // Md5 match check
             //let md5 = dataJSON.value.MD5.split(':')[0];
-            helpers.ServerHelper.log('GOT FOLLOWING MD5: ' + dataJSON.value.MD5);
+            //helpers.ServerHelper.log('GOT FOLLOWING MD5: ' + dataJSON.value.MD5);
             //TODO : change that to !==
             if (dataJSON.value.MD5 !== this.token.row.md5) {
+                this.token.data.MD5 = { "md5": escape(dataJSON.value.MD5), "app_version": escape(dataJSON.value.VERSION) };
                 this.token.data.banned = { 'Invalid MD5 checksum. Integrity of the assembly.': true };
                 return helpers.ServerHelper.sendPacket(this.socket, 'F2', '', false);
             }
-            this.token.data.MD5 = dataJSON.value.MD5;
+            
 
             // HWID match check
 
@@ -162,8 +163,8 @@ export default class SecureServer {
             // ['hwid'] 
             let ipban = JSON.parse(new Buffer(this.token.data.IPBAN, 'base64').toString('ascii'));
 
-            if (ipban.max_hwid !== -1) {
-                let serveHWID = helpers.ServerHelper.serveHWID(dataJSON.value.HWID, this.token.data.HWID, ipban);
+            if (ipban.max_hwid !== '-1') {
+                let serveHWID = helpers.ServerHelper.serveHWID(escape(dataJSON.value.HWID), this.token.data.HWID, ipban);
                 if (serveHWID.updateRequired) requireUpdate = true;
                 //this.token.data.HWID = serveHWID.newHWID;
                 if (!serveHWID.matchPlan) {
@@ -173,7 +174,7 @@ export default class SecureServer {
             }
 
             // IP plan checkup
-            if (ipban.max_ips !== -1) {
+            if (ipban.max_ips !== '-1') {
                 let serveIPS = helpers.ServerHelper.serveIPS(ip.toLong(this.socket.remoteAddress), this.token.data.IPS, ipban);
                 if (serveIPS.updateRequired) requireUpdate = true;
                 //this.token.data.IPS = serveIPS.newIPS;
@@ -190,7 +191,7 @@ export default class SecureServer {
             }
 
             // Finally if all checks passed, send plugin list
-            return (AskRequest == null) ? connection.query('SELECT * FROM programs').then((rows) => {
+            return connection.query('SELECT * FROM programs').then((rows) => {
                 // This is not the final implementation of a 'plugin' system
                 return helpers.ServerHelper.serveHasRemoteData(this.token.data.acces).then((Buffer) => {
                     return helpers.ServerHelper.sendPacket(this.socket, 'DEA', Buffer, true);
@@ -206,7 +207,7 @@ export default class SecureServer {
                             // Update the client here
                             return helpers.ServerHelper.sendPacket(this.socket, 'E8', newToken.token, '', true).then(() => {
                                 // Also update old_token as it is the last token the client have.
-                                return helpers.ServerHelper.serveOldToken(newToken, connection).then(() => { return true; });
+                                return helpers.ServerHelper.serveOldToken(newToken, connection);
                             });
                         });
                     }
@@ -215,11 +216,11 @@ export default class SecureServer {
                     return helpers.ServerHelper.sendPacket(this.socket, 'DEAD', '', true);
                 });
                 //if (connection && connection.end) connection.end();
-            }) : true;
+            });
 
         }).then((result) => {
             // This is incase early condition is not met. Therefore needs token update serverside.
-            if (!result) {
+            if (!result && this.token != null) {
                 let newToken = helpers.ServerHelper.updateToken(this.token);
                 return helpers.ServerHelper.SaveToken(newToken, connection);
             }
