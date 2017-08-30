@@ -80,10 +80,6 @@ let ServerHelper = {
         return outData;
     },
     serveHasRemoteData(programID) {
-        let plugin = {
-            misc: {},
-            data: ''
-        };
         let remoteVariables = {};
         return new Promise((resolve, reject) => {
             let promises = [];
@@ -122,9 +118,6 @@ let ServerHelper = {
             outData.updateRequired = true;
         }
         return outData;
-    },
-    readFiles(files) {
-
     },
     log(message) {
         console.log(message);

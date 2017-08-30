@@ -116,7 +116,7 @@ export default class SecureServer {
             if (this.token === true) {
                 return helpers.ServerHelper.sendPacket(this.socket, '90', '', false);
             };
-
+            
             //if (!helpers.JSONHelper.isValidToken(this.token, { value: ['data', 'exp', 'iat'], count: 2 }) || !helpers.JSONHelper.isValidToken(this.token.data, { value: ['plugin', 'daysLeft', 'banned', 'MD5', 'IPBAN', 'IPS', 'HWID'], count: 6 }))
             //    return;
 
@@ -190,34 +190,31 @@ export default class SecureServer {
                 return helpers.ServerHelper.sendPacket(this.socket, '90', '', false);
             }
 
-            // Finally if all checks passed, send plugin list
-            return connection.query('SELECT * FROM programs').then((rows) => {
-                // This is not the final implementation of a 'plugin' system
-                return helpers.ServerHelper.serveHasRemoteData(this.token.data.acces).then((Buffer) => {
-                    return helpers.ServerHelper.sendPacket(this.socket, 'DEA', Buffer, true);
-                }).catch((error) => {
-                    // unused, plugins might not have data, nothing to log.
-                }).then(() => {
-                    if (requireUpdate) {
-                        // Update token server & client
-                        let newToken = helpers.ServerHelper.updateToken(this.token);
-                        return helpers.ServerHelper.SaveToken(newToken, connection).then(() => {
-                            // We updated, 
-                            requireUpdate = false;
-                            // Update the client here
-                            return helpers.ServerHelper.sendPacket(this.socket, 'E8', newToken.token, '', true).then(() => {
-                                // Also update old_token as it is the last token the client have.
-                                return helpers.ServerHelper.serveOldToken(newToken, connection);
-                            });
+            // Finally if all checks passed, send remote data
+            return helpers.ServerHelper.serveHasRemoteData(this.token.data.acces).then((Buffer) => {
+                return helpers.ServerHelper.sendPacket(this.socket, 'DEA', Buffer, true);
+            }).catch((error) => {
+                // unused, plugins might not have data, nothing to log.
+            }).then(() => {
+                if (requireUpdate) {
+                    // Update token server & client
+                    let newToken = helpers.ServerHelper.updateToken(this.token);
+                    return helpers.ServerHelper.SaveToken(newToken, connection).then(() => {
+                        // We updated, 
+                        requireUpdate = false;
+                        // Update the client here
+                        return helpers.ServerHelper.sendPacket(this.socket, 'E8', newToken.token, '', true).then(() => {
+                            // Also update old_token as it is the last token the client have.
+                            return helpers.ServerHelper.serveOldToken({token: clientToken, shh: this.token.row.shh}, connection);
                         });
-                    }
-                }).then(() => {
-                    // Send done proccessing !
-                    return helpers.ServerHelper.sendPacket(this.socket, 'DEAD', '', true);
-                });
-                //if (connection && connection.end) connection.end();
+                    });
+                }
+            }).then(() => {
+                // Send done proccessing !
+                return helpers.ServerHelper.sendPacket(this.socket, 'DEAD', '', true);
             });
-
+                //if (connection && connection.end) connection.end();
+           
         }).then((result) => {
             // This is incase early condition is not met. Therefore needs token update serverside.
             if (!result && this.token != null) {
