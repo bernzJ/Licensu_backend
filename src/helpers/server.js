@@ -1,32 +1,38 @@
-import * as helpers from './index';
-import fs from 'fs';
-import path from 'path';
+import * as helpers from "./index";
+import fs from "fs";
+import path from "path";
 
 let ServerHelper = {
     updateToken(newTokenObject) {
         let row = newTokenObject.row;
+    let uid = newTokenObject.uid;
         delete newTokenObject.exp;
         delete newTokenObject.iat;
         delete newTokenObject.row;
         let updatedToken = helpers.JWTHelper.sign(newTokenObject, row.shh, {
-            expiresIn: newTokenObject.data.daysLeft + ' days'
+      expiresIn: newTokenObject.data.daysLeft + " days"
         });
         newTokenObject.row = row;
-        return { token: updatedToken, shh: row.shh };
+    return { token: updatedToken, shh: row.shh, uid: uid };
     },
     // This token object contains the token string and the SH
     SaveToken(newTokenObject, connection) {
-        return connection.query('UPDATE tokens SET ? WHERE ?', [{
+    return connection.query("UPDATE tokens SET ? WHERE ?", [
+      {
             data: newTokenObject.token
-        }, {
+      },
+      {
             shh: newTokenObject.shh
-        }]);
+      }
+    ]);
     },
     // This token object contains the token string and the SH
     serveOldToken(newTokenObject, connection) {
-        return connection.query('UPDATE tokens SET ? WHERE ?', [{
+    return connection.query("UPDATE tokens SET ? WHERE ?", [
+      {
             old_data: newTokenObject.token
-        }, {
+      },
+      {
             shh: newTokenObject.shh
         }]);
     },
@@ -74,9 +80,6 @@ let ServerHelper = {
         if (server.indexOf(client) !== -1) {
             server.push(client);
             outData.updateRequired = true;
-        }
-        outData.matchPlan = matchPlan(server);
-
         return outData;
     },
     serveHasRemoteData(programID) {
