@@ -4,9 +4,9 @@
   "main": "app.js",
   "dependencies": {
     "babel-polyfill": "^6.23.0",
-    "mysql": "^2.13.0",
-    "nodemon": "^1.11.0",
-    "promise-mysql": "^3.0.1"
+    "mongoose": "^5.0.13",
+    "mongoose-unique-validator": "^2.0.0",
+    "nodemon": "^1.11.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -17,7 +17,7 @@
     "debug": "npm run serve",
     "start": "npm run serve",
     "build": "babel src --out-dir dist",
-    "serve": "npm run build && node --debug=5858 dist/app.js",
+    "serve": "npm run build && node --inspect=5858 dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

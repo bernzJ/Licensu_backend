@@ -1,11 +1,11 @@
 let JSONHelper = {
     isJsonString(str) {
         try {
-            JSON.parse(str);
+            if (typeof (str) === "object") return str
+            return JSON.parse(str);
         } catch (e) {
             return false;
         }
-        return true;
     },
     isValidToken(token, props) {
         let propCount = -1;
@@ -27,14 +27,16 @@ let JSONHelper = {
         }
         return true;
     },
-    getValues(ObjectArray) {
-        let out = [];
-        for (var propName in ObjectArray) {
-            if (ObjectArray.hasOwnProperty(propName)) {
-                out.push(ObjectArray[propName]);
-            }
-        }
-        return out;
+    /**
+     * return [field] value or false
+     * @param {Array} ObjectArray, contains the data. 
+     * @param {Object} condition, what to reduce with. 
+     * @param {String} field, which field to return.
+     * @param {Any} if setValue is not false, the field will be set to that value.
+     */
+    getValue(ObjectArray, condition, field, setValue = false) {
+        let filtered = ObjectArray.filter(obj => obj.hasOwnProperty(condition.Key) && obj.hasOwnProperty(field) && obj[condition.Key] == condition.Value);
+        return filtered.length > 0 ? setValue != false ? setValue == "return" ? filtered[0] : filtered[0][field] == setValue : filtered[0][field] : false;
     }
 };
 export default JSONHelper;

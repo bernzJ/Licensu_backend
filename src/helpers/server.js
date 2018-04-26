@@ -1,79 +1,37 @@
 import * as helpers from "./index";
 import fs from "fs";
 import path from "path";
-
 let ServerHelper = {
-  updateToken(newTokenObject) {
-    let row = newTokenObject.row;
-    let uid = newTokenObject.uid;
-    delete newTokenObject.exp;
-    delete newTokenObject.iat;
-    delete newTokenObject.row;
-    let updatedToken = helpers.JWTHelper.sign(newTokenObject, row.shh, {
-      expiresIn: newTokenObject.data.daysLeft + " days"
-    });
-    newTokenObject.row = row;
-    return { token: updatedToken, shh: row.shh, uid: uid };
-  },
-  // This token object contains the token string and the SH
-  SaveToken(newTokenObject, connection) {
-    return connection.query("UPDATE tokens SET ? WHERE ?", [
-      {
-        data: newTokenObject.token
-      },
-      {
-        shh: newTokenObject.shh
-      }
-    ]);
-  },
-  // This token object contains the token string and the SH
-  serveOldToken(newTokenObject, connection) {
-    return connection.query("UPDATE tokens SET ? WHERE ?", [
-      {
-        old_data: newTokenObject.token
-      },
-      {
-        shh: newTokenObject.shh
-      }
-    ]);
-  },
-  // Todo eventually, fix redundancy.
-  serveHWID(client, server, plan) {
-    if (server == null || !Array.isArray(server)) server = [];
-    let outData = {
-      newHWID: "",
-      matchPlan: false,
-      updateRequired: false
-    };
-    let matchPlan = newHWID => {
-      //if (plan.split(':')[0] === '-1') return true;
-      let countHWID = newHWID.length;
-      if (countHWID > plan.max_hwid) return false;
-      return true;
-    };
-
-    if (server.indexOf(client) == -1) {
-      server.push(client);
-      outData.updateRequired = true;
+  /** @TODO: add save to db.
+   * return bool.
+   * @param {Object} clientData , json containing program_id and MD5 of the assembly.
+   * @param {Object} program, contains info about the specific program.
+   */
+  serveMD5(clientData, program) {
+    if (!clientData.MD5 || clientData.MD5 !== program.md5) {
+      program.banned = true;
+      return false
     }
-    outData.matchPlan = matchPlan(server);
-
-    return outData;
+    return true
   },
-  serveIPS(clients, plan) {
-    let outData = {
-      matchPlan: false,
-      updateRequired: false
-    };
-    let matchPlan = newIPS => {
-      let countIPS = newIPS.length;
-      if (countIPS > plan.max_ips) return false;
-      return true;
-    };
-    outData.matchPlan = matchPlan(clients);
-    outData.updateRequired = true;
-    return outData;
+  /** @TODO: add save to db.
+  * return 
+  * @param {Object} clientData , json containing program_id and MD5 of the assembly.
+  * @param {Object} access, contains info about the user's access.
+  */
+  serveHWID(clientData, access) {
+    let filteredHwid = access.hwids.filter(hwid => hwid === clientData.HWID);
+    return filteredHwid.length <= 0 ? false : true;
   },
+  /** @TODO: add save to db.
+  * return bool.
+  * @param {Object} clientData , json containing program_id and MD5 of the assembly.
+  * @param {Object} program, contains info about the specific program.
+  */
+  serveVersion(clientData, program) {
+    return clientData.VERSION != program.version ? false : true
+  },
+  /**TODO: implement plugin system. */
   serveHasRemoteData(programID) {
     let remoteVariables = {};
     return new Promise((resolve, reject) => {
@@ -116,42 +74,36 @@ let ServerHelper = {
       });
     });
   },
-  serveDaysLeft(token) {
+  /**
+   * return integer.
+   * @param {Date} date, javascript date type. 
+   */
+  serveDaysLeft(date) {
     let oneDay = 1000 * 60 * 60 * 24;
     let dateNow = new Date();
-    let differenceMs = Math.abs(token.exp * 1000 - dateNow.getTime());
-    let daysLeft = Math.round(differenceMs / oneDay); // - 1 THE -1 IS TO TEST SOMESHIT
-    let outData = {
-      newDays: token.data.daysLeft
-    };
-    if (token.data.daysLeft !== daysLeft) {
-      outData.newDays = daysLeft;
-      outData.updateRequired = true;
-    }
-    return outData;
+    let differenceMs = Math.abs(date * 1000 - dateNow.getTime());
+    return Math.round(differenceMs / oneDay); // -1 to mock 
   },
+  /**
+   * return undefined.
+   * @param {String} message, message to be logged. 
+   */
   log(message) {
     console.log(message);
     fs.appendFile("server.log", message + "\n");
   },
-  sendPacket(socket, status, data, retbool) {
+  /**
+   * return undefined.
+   * @param {Socket} socket, nodejs socket class. 
+   * @param {String} status, status to be sent. 
+   * @param {String} data , if needed, data to be sent.
+   */
+  sendPacket(socket, status, data = "") {
     let packet = {
       status: status,
-      data: typeof data === "undefined" ? "" : data
+      data: data
     };
-    return new Promise((resolve, reject) => {
-      socket.write(JSON.stringify(packet) + "\n", () => {
-        resolve(retbool);
-      });
-    });
-  },
-  removeIP(clients, ip) {
-    Object.keys(clients).forEach(key => {
-      if (clients[key].indexOf(ip) != -1) {
-        delete clients[key].splice[(clients[key].indexOf(ip), 1)];
-        return;
-      }
-    });
+    socket.write(JSON.stringify(packet) + "\n");
   }
 };
 export default ServerHelper;

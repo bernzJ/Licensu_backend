@@ -1,8 +1,7 @@
-let config = {
-    host     : 'localhost',
-    user     : 'root',
-    password : '',
-    database : 'licensu'
+let db_config = {
+    "username": "",
+    "password": "",
+    "host": "127.0.0.1",
+    "authSource": "admin"
 };
-
-export default config;
+export default db_config;
