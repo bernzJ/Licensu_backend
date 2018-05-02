@@ -9,6 +9,21 @@ import userSchema from "./schemas/user";
 import programSchema from "./schemas/program";
 
 const typeDefs = `
+ 
+  type Status {
+    banned: Boolean
+    reason: String
+  }
+
+  type Access {
+    program_id: String
+    days: Date
+    max_hwids: Int
+    ran: Boolean
+    status: [Status]
+    hwid: [String]
+  }
+
 	type User {
     _id: String
     email: String
@@ -21,10 +36,15 @@ const typeDefs = `
     version: String
     md5: String
   }
+  type Token {
+    _id: String
+    access: [Access]
+  }
   
   type Query {
     currentUser: User
     getPrograms: [Program]
+    getTokens: [Token]
   }
 
 	type Mutation {
@@ -45,7 +65,7 @@ let resolvers = {
       return programs;
     },
     getTokens: async (root, args, { user, mongo }) => {
-      
+
     }
   },
   Mutation: {
