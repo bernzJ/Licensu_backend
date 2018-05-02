@@ -7,9 +7,12 @@ import express_graphql from "express-graphql";
 import express from "express";
 import userSchema from "./schemas/user";
 import programSchema from "./schemas/program";
+import tokenSchema from "./schemas/token";
+import GraphQLJSON from 'graphql-type-json';
 
 const typeDefs = `
- 
+  scalar Date
+
   type Status {
     banned: Boolean
     reason: String
@@ -65,7 +68,11 @@ let resolvers = {
       return programs;
     },
     getTokens: async (root, args, { user, mongo }) => {
-
+      if (!user) {
+        throw new Error("Cannot perform this action");
+      }
+      let tokens = await mongo.model("tokens", tokenSchema).find({});
+      return tokens;
     }
   },
   Mutation: {

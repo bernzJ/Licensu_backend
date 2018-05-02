@@ -5,7 +5,7 @@ let schema = new Schema({
     {
       program_id: { type: String, required: true },
       days: { type: Date, required: true },
-      hwid_plan: { type: String, required: true },
+      max_hwid: { type: Number, required: true },
       ran: { type: Boolean, required: true },
       status: {
         banned: { type: Boolean, required: true },
