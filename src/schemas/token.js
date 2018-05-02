@@ -8,8 +8,8 @@ let schema = new Schema({
       hwid_plan: { type: String, required: true },
       ran: { type: Boolean, required: true },
       status: {
-        banned: { type: Boolean, required: true},
-        reason: { type: String, required: false}
+        banned: { type: Boolean, required: true },
+        reason: { type: String, required: false }
       },
       hwids: { type: [String], required: false }
     }

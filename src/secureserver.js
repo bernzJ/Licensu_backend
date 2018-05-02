@@ -90,12 +90,12 @@ export default class SecureServer {
             queryProgram.findById(userAccess.program_id, function (err, program) {
 
               if (err) return helpers.ServerHelper.sendPacket(this.socket, { status: "141" });
-              if (!helpers.ServerHelper.serveMD5(dataJson.data, queryProgram)) return helpers.ServerHelper.sendPacket(this.socket, { status: "F2" });
+              if (!helpers.ServerHelper.serveMD5(dataJson.data, program)) return helpers.ServerHelper.sendPacket(this.socket, { status: "F2" });
               if (helpers.ServerHelper.serveDaysLeft(program.days) <= 0) return helpers.ServerHelper.sendPacket(this.socket, { status: "90" });
               if (!helpers.ServerHelper.serveHWID(dataJson.data, userAccess)) return helpers.ServerHelper.sendPacket(this.socket, { status: "F2" });
-              if (!helpers.ServerHelper.serveVersion(dataJson.data, queryProgram)) {
+              if (!helpers.ServerHelper.serveVersion(dataJson.data, program)) {
                 helpers.ServerHelper.sendPacket(this.socket, { status: "45" });
-                fs.readFile(`./updates/${queryProgram.version}.bin`, (errFile, data) => {
+                fs.readFile(`./updates/${program.version}.bin`, (errFile, data) => {
                   if (errFile) return helpers.ServerHelper.sendPacket(this.socket, { status: "C2" });
                   return helpers.ServerHelper.sendPacket(this.socket, { status: "C2", updateBuffer: data });
                 });

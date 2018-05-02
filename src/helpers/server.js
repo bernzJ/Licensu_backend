@@ -16,12 +16,12 @@ let ServerHelper = {
   },
   /** @TODO: add save to db.
   * return 
-  * @param {Object} clientData , json containing program_id and MD5 of the assembly.
+  * @param {Object} clientData , json containing program_id and HWID of user.
   * @param {Object} access, contains info about the user's access.
   */
   serveHWID(clientData, access) {
-    let filteredHwid = access.hwids.filter(hwid => hwid === clientData.HWID);
-    return filteredHwid.length <= 0 ? false : true;
+    let filteredHwid = access.hwids.filter(hwid => hwid !== clientData.HWID);
+    return filteredHwid.length > access.max_hwids && access.ran === true ? false : true;
   },
   /** @TODO: add save to db.
   * return bool.
